@@ -6,4 +6,4 @@ Pantallas: SVG editables y PNG para insertar. Pares: imágenes usadas en el info
 
 No incluye archivo nativo de Figma. Use la guía complementaria para montar frames, componentes y conexiones. La importación SVG no incorpora navegación y puede convertir texto en vectores.
 
-Verificación: se comprobó el modelo JavaScript; la interacción completa en navegador y la revisión cruzada real quedan pendientes. No se ha publicado enlace de acceso.
+Verificación: se comprobó el modelo JavaScript y la interacción publicada en navegador. La revisión cruzada real queda pendiente. Publicación actual: https://jesusfsp.github.io/caso-c-ihc-prototipo/
