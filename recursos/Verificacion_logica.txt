@@ -1,0 +1,8 @@
+aprobado: correcto
+agotado: correcto
+rechazado: correcto
+pendiente: correcto
+sinconexion: correcto
+existente: correcto
+Selección directa y bloqueo de doble autorización: correctos.
+Alcance: lógica JavaScript; no ejecución en navegador.

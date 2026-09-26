@@ -1,0 +1,28 @@
+Origen,Control,Evento,Destino,Feedback
+P01,Ver menús de hoy,Tap,P02 / P11 / P10,Según no comprado / existente / pendiente
+P02,Ver detalle de cada menú,Tap,P03 del menú,M1; conserva selección
+P02,Elegir cada menú,Tap,P04 del menú,"M2; si agotado, P08"
+P02,Volver al inicio,Tap,P01,Sin autorización
+P03,Seleccionar este menú,Tap,P04,"Si agotado, P08"
+P03,Volver a los menús,Tap,P02,Consulta sin compra
+P04,Billetera A,Tap,P04 variante A,A seleccionada
+P04,Billetera B,Tap,P04 variante B,B seleccionada
+P04,Continuar al pago,Tap,P05 de billetera elegida,Total y menú visibles
+P04,Cambiar menú,Tap,P02,Permite nueva selección
+P04,Cancelar compra,Tap,P01,No autoriza
+P05,Autorizar S/ 5.00,Tap,P06 del escenario,Una autorización
+P05,Volver sin autorizar,Tap,P04,Conserva menú y billetera
+P06 aprobado,Frame completo,After delay 1100 ms,P07,Compra confirmada
+P06 rechazo,Frame completo,After delay 1100 ms,P09,Rechazo confirmado
+P06 pendiente,Frame completo,After delay 1100 ms,P10,Resultado desconocido
+P06 desconexión,Frame completo,After delay 1100 ms,P12,No se conoce el resultado
+P07,Guardar comprobante demo,Tap,Overlay C-O01,En Figma solo simula guardado; HTML descarga SVG
+P07,Volver al inicio,Tap,P01 variante existente,Compra ya registrada
+P08,Elegir otro menú,Tap,P02 variante agotado,Bloquear Elegir del agotado
+P09,Revisar y reintentar,Tap,P04 conservado,Permite revisar y cambiar billetera
+P09,Cancelar compra,Tap,P01,No vuelve a pagar
+P10,Consultar estado,Tap,P06 consulta,No incrementa autorizaciones
+P11,Ver mi ticket,Tap,P07,Recupera comprobante
+P12,Reconectar y consultar,Tap,P06 consulta,Mantiene misma operación
+P06 consulta,Frame completo,After delay 1100 ms,P07,Respuesta aprobada de demostración
+C-O01,Cerrar,Tap,Close overlay,Retorno al ticket

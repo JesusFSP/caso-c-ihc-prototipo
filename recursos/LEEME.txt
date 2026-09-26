@@ -1,0 +1,9 @@
+CASO C - RECURSOS EDITABLES
+
+Abra Prototipo_Caso_C.html en un navegador local. Use Ver detalle para M1 o Elegir para M2. El panel Controles de la demostración prepara los escenarios de error. No hay pagos reales.
+
+Pantallas: SVG editables y PNG para insertar. Pares: imágenes usadas en el informe. Diagramas: SVG editables, PNG y recortes del informe anterior. CSV: medidas de capas y matriz de conexiones Figma. JSON: definición de pantallas y contrastes. Modelo.js: lógica de estados.
+
+No incluye archivo nativo de Figma. Use la guía complementaria para montar frames, componentes y conexiones. La importación SVG no incorpora navegación y puede convertir texto en vectores.
+
+Verificación: se comprobó el modelo JavaScript; la interacción completa en navegador y la revisión cruzada real quedan pendientes. No se ha publicado enlace de acceso.
