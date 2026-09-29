@@ -287,7 +287,7 @@
 };
 class Comedor {
  constructor(){this.reset('aprobado')}
- reset(mode){this.mode=mode;this.screen='C-P01';this.menu='Vegetariano';this.wallet='A';this.ticket=mode==='existente';this.pending=false;this.used=false;this.attempts=0;this.message='';}
+ reset(mode){this.mode=mode;this.screen='C-P01';this.menu='Vegetariano';this.wallet=null;this.ticket=mode==='existente';this.pending=false;this.used=false;this.attempts=0;this.message='';}
  go(s){this.screen=s;return s}
  act(action){let [event,value]=action.split(':');this.message='';
  if(event==='home')return this.go('C-P01');
@@ -297,7 +297,7 @@ class Comedor {
  if(event==='select'||event==='choose'){if(value)this.menu=value;if(this.ticket)return this.go('C-P11');if(this.mode==='agotado'&&!this.used){this.used=true;this.soldMenu=this.menu;return this.go('C-P08')}return this.go('C-P04')}
  if(event==='wallet'){this.wallet=value;return this.go('C-P04')}
  if(event==='summary')return this.go('C-P04');
- if(event==='pay'){if(this.ticket)return this.go('C-P11');if(this.pending)return this.go('C-P10');return this.go('C-P05')}
+  if(event==='pay'){if(this.ticket)return this.go('C-P11');if(this.pending)return this.go('C-P10');if(!this.wallet)return this.go('C-P04');return this.go('C-P05')}
  if(event==='authorize'){if(this.pending||this.ticket)return this.screen;this.attempts++;this.pending=true;return this.go('C-P06')}
  if(event==='result'){if(!this.pending)return this.screen;if(this.mode==='rechazado'&&!this.used){this.used=true;this.pending=false;return this.go('C-P09')}if(this.mode==='pendiente'&&!this.used){this.used=true;return this.go('C-P10')}if(this.mode==='sinconexion'&&!this.used){this.used=true;return this.go('C-P12')}this.pending=false;this.ticket=true;return this.go('C-P07')}
  if(event==='retry')return this.go('C-P04');
@@ -323,22 +323,25 @@ const SCREEN_INFO={
 };
 const app=new Comedor();let timer;const phone=document.getElementById('phone');
 function renderContext(){const info=SCREEN_INFO[app.screen];if(!info)return;for(const key of ['phase','title','goal','action','system','requirements','next']){const node=document.getElementById('context-'+key);if(node)node.textContent=key==='title'?SCREENS[app.screen].title:info[key]}document.getElementById('context-title').textContent=app.screen+' · '+SCREENS[app.screen].title;}
-function svgFor(id){let svg=SCREENS[id].svg;
+ const WALLETS=[{id:'yape',name:'Yape'},{id:'plin',name:'Plin'}];
+ function walletName(){return (WALLETS.find(wallet=>wallet.id===app.wallet)||{}).name||'ninguna billetera'}
+ function svgFor(id){let svg=SCREENS[id].svg;
  if(id!=='C-P02'&&id!=='C-P01')svg=svg.replaceAll('Vegetariano',app.menu).replaceAll('Lentejas, arroz y verduras',app.menu==='Regular'?'Pollo, arroz y ensalada':app.menu==='Dieta'?'Pollo al vapor y verduras':'Lentejas, arroz y verduras');
- if(id==='C-P04'&&app.wallet==='B')svg=svg.replace('A · Seleccionada','A · Elegir').replace('B · Elegir','B · Seleccionada');
- if(id==='C-P05')svg=svg.replace('BILLETERA A','BILLETERA '+app.wallet);
+  if(id==='C-P04')svg=svg.replace('Billetera para pagar','Billetera para pagar · selección simulada');
+  if(id==='C-P05')svg=svg.replace('BILLETERA A','BILLETERA '+walletName().toUpperCase()).replace('Billetera de demostración','Billetera simulada: '+walletName()).replace('Autorizar S/ 5.00','Autorizar con '+walletName());
  if(id==='C-P06')svg=svg.replace('Operación: DEMO-C-001','Operación: DEMO-C-'+String(Math.max(1,app.attempts)).padStart(3,'0'));
  if(id==='C-P03'&&app.soldMenu===app.menu)svg=svg.replace('Disponible hoy','Agotado hoy').replace('Seleccionar este menú','Menú agotado');
  if(id==='C-P02'&&app.soldMenu){const title=app.soldMenu;let start=svg.indexOf('>'+title+'</text>');let pos=svg.indexOf('Disponible · S/ 5.00',start);if(pos>-1)svg=svg.slice(0,pos)+svg.slice(pos).replace('Disponible · S/ 5.00','Agotado · S/ 5.00');}
  return svg;
 }
-function render(){clearTimeout(timer);const s=SCREENS[app.screen];phone.innerHTML=svgFor(app.screen);phone.querySelector('svg').setAttribute('aria-hidden','true');const title=document.createElement('h2');title.className='sr';title.textContent=s.title;title.tabIndex=-1;phone.append(title);
+ function addWalletPicker(){if(app.screen!=='C-P04')return;const picker=document.createElement('section');picker.setAttribute('aria-labelledby','wallet-picker-title');picker.style.cssText='position:absolute;left:0;top:382px;width:390px;height:194px;padding:8px 24px;background:#f5f7f3;z-index:2';const title=document.createElement('h3');title.id='wallet-picker-title';title.textContent='Billetera para pagar';title.style.cssText='margin:0 0 8px;font:700 16px Arial;color:#18312f';picker.append(title);const grid=document.createElement('div');grid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:10px';WALLETS.forEach(wallet=>{const button=document.createElement('button');button.type='button';button.textContent=(app.wallet===wallet.id?'✓ ':'')+wallet.name;button.setAttribute('aria-pressed',String(app.wallet===wallet.id));button.setAttribute('aria-label','Seleccionar '+wallet.name);button.style.cssText='min-height:48px;padding:8px;border:2px solid '+(app.wallet===wallet.id?'#176b50':'#9bb8ac')+';border-radius:10px;background:'+(app.wallet===wallet.id?'#e8f2ed':'white')+';color:#176b50;font:700 15px Arial;cursor:pointer';button.onclick=()=>{app.act('wallet:'+wallet.id);render()};grid.append(button)});picker.append(grid);const hint=document.createElement('p');hint.textContent=app.wallet?'Seleccionada: '+walletName():'Selecciona una billetera para continuar.';hint.style.cssText='margin:8px 0 0;font:13px Arial;color:'+(app.wallet?'#50635f':'#a52a2a');picker.append(hint);phone.append(picker)}
+ function render(){clearTimeout(timer);const s=SCREENS[app.screen];phone.innerHTML=svgFor(app.screen);phone.querySelector('svg').setAttribute('aria-hidden','true');const title=document.createElement('h2');title.className='sr';title.textContent=s.title;title.tabIndex=-1;phone.append(title);addWalletPicker();
  const desc=document.createElement('p');desc.className='sr';desc.textContent=Array.from(phone.querySelectorAll('svg text')).map(x=>x.textContent).join('. ');phone.append(desc);
- s.buttons.forEach(b=>{const button=document.createElement('button');button.className='hit';button.setAttribute('aria-label',b.label);button.style.cssText=`left:${b.x/390*100}%;top:${b.y/844*100}%;width:${b.w/390*100}%;height:${b.h/844*100}%`;button.textContent=b.label;if(b.event.startsWith('wallet:'))button.setAttribute('aria-pressed',b.event.endsWith(app.wallet));if(app.screen==='C-P02'&&app.soldMenu&&b.event.endsWith(':'+app.soldMenu)&&b.event.startsWith('select:'))button.disabled=true;if(app.screen==='C-P03'&&app.soldMenu===app.menu&&b.event==='choose')button.disabled=true;button.onclick=()=>handle(b.event);phone.append(button)});
+  s.buttons.forEach(b=>{if(b.event.startsWith('wallet:'))return;const button=document.createElement('button');button.className='hit';button.setAttribute('aria-label',b.label);button.style.cssText=`left:${b.x/390*100}%;top:${b.y/844*100}%;width:${b.w/390*100}%;height:${b.h/844*100}%`;button.textContent=b.label;if(app.screen==='C-P02'&&app.soldMenu&&b.event.endsWith(':'+app.soldMenu)&&b.event.startsWith('select:'))button.disabled=true;if(app.screen==='C-P03'&&app.soldMenu===app.menu&&b.event==='choose')button.disabled=true;if(app.screen==='C-P04'&&b.event==='pay'&&!app.wallet){button.disabled=true;button.setAttribute('aria-disabled','true');}button.onclick=()=>handle(b.event);phone.append(button)});
  document.getElementById('status').textContent=s.id+' · '+s.title;renderContext();title.focus({preventScroll:true});
  if(app.screen==='C-P06')timer=setTimeout(()=>handle('result'),1100);
 }
 function handle(event){if(event==='download'){const blob=new Blob([svgFor('C-P07')],{type:'image/svg+xml'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='Ticket_DEMO_C.svg';a.click();URL.revokeObjectURL(url);document.getElementById('status').textContent='Comprobante de demostración descargado.';return;}if(event==='choose'&&app.soldMenu===app.menu){app.go('C-P08')}else{app.act(event)}render()}
-function addQuickControls(){const details=document.querySelector('details');const title=document.createElement('p');title.className='quick-title';title.textContent='Accesos rápidos · simulación del prototipo';const grid=document.createElement('div');grid.className='quick-grid';const scenarios=[['Aprobado','aprobado'],['Agotado','agotado'],['Rechazado','rechazado'],['Pendiente','pendiente'],['Desconexión','sinconexion'],['Ticket existente','existente']];scenarios.forEach(([label,value])=>{const button=document.createElement('button');button.type='button';button.className='quick';button.textContent=label;button.setAttribute('aria-label','Simular escenario: '+label);button.onclick=()=>{document.getElementById('scenario').value=value;app.reset(value);delete app.soldMenu;render()};grid.append(button)});details.append(title,grid)}
-addQuickControls();document.getElementById('reset').onclick=()=>{app.reset(document.getElementById('scenario').value);delete app.soldMenu;render()};render();
+ function addQuickControls(){}
+ const scenario=document.getElementById('scenario');scenario.options[0].textContent='Flujo normal';document.querySelector('details summary').textContent='Modo demo · escenarios de prueba';document.getElementById('reset').textContent='Reiniciar demostración';document.querySelector('.panel > .note:last-child')?.remove();document.querySelector('details > .note:last-child')?.remove();document.querySelector('.panel').style.cssText+=';height:844px;overflow:hidden';document.querySelector('.context').style.cssText+=';height:380px;overflow:hidden;margin-bottom:14px;padding:14px 16px';document.querySelectorAll('.context p').forEach(node=>{node.style.margin='7px 0';node.style.fontSize='13px'});document.getElementById('reset').onclick=()=>{app.reset(scenario.value);delete app.soldMenu;render()};render();
 </script></html>
